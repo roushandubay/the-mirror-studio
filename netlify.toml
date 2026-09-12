@@ -1,0 +1,25 @@
+# Netlify detects Next.js automatically and runs it through its OpenNext
+# adapter (server components, route handlers, server actions, next/image).
+# Only the settings below differ from the defaults.
+
+[build]
+  # Calls Next directly rather than `npm run build`: the local project folder
+  # contains "&", which breaks npm's script shims on Windows. This command
+  # works identically on Netlify's Linux builders and on a local `netlify build`.
+  command = "node node_modules/next/dist/bin/next build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Day-long caching for the heavy media. Not "immutable": these filenames are
+# not content-hashed, so replacing hero-desktop.mp4 must still reach visitors.
+[[headers]]
+  for = "/video/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/models/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"

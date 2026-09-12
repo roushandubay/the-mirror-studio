@@ -1,0 +1,220 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Design tokens — extracted verbatim from Figma
+   "Beautya | Skincare - Cosmetic Website" (OHuYkW3ScIrLwiC4OUTndd)
+   Every value here is CMS-editable at runtime: the theme document is injected
+   as a <style> block after this sheet, so a later :root wins on equal
+   specificity. See src/lib/theme.ts
+--------------------------------------------------------------------------- */
+@theme {
+  --color-primary: #a10550;
+  --color-primary-25: #fbeff2;
+  --color-primary-100: #fdabd2;
+  --color-primary-200: #fa58a6;
+  --color-primary-600: #79043c;
+  --color-primary-700: #510228;
+  --color-primary-750: #3d021e;
+  --color-primary-800: #280114;
+  --color-primary-900: #14010a;
+
+  --color-ink: #0c0c0c;
+  --color-ink-soft: #202020;
+  --color-muted: #606060;
+  --color-muted-2: #868686;
+  --color-line: #cbcbcb;
+  --color-line-2: #dfdfdf;
+  --color-canvas: #faf9f5;
+
+  --font-sans: var(--font-open-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Display face for the cinematic homepage. Cormorant Garamond stands in for
+     Vero's licensed Louize Display: same high-contrast, true-italic register. */
+  --font-display: var(--font-cormorant), Georgia, "Times New Roman", serif;
+
+  /* Editorial display ramp, modelled on Vero's 168/120/94/68/30 steps.
+     Fluid so the big sizes survive a phone. */
+  --text-d1: clamp(52px, 11.6vw, 168px);
+  --text-d1--line-height: 0.92;
+  --text-d2: clamp(40px, 8.3vw, 120px);
+  --text-d2--line-height: 0.98;
+  --text-d3: clamp(34px, 6.5vw, 94px);
+  --text-d3--line-height: 1;
+  --text-d4: clamp(28px, 4.7vw, 68px);
+  --text-d4--line-height: 1.08;
+  --text-d5: clamp(20px, 2.1vw, 30px);
+  --text-d5--line-height: 1.3;
+
+  /* Web/* type ramp — size / line-height */
+  --text-h1: 44px;
+  --text-h1--line-height: 1.4;
+  --text-h3: 32px;
+  --text-h3--line-height: 1.4;
+  --text-h4: 24px;
+  --text-h4--line-height: 1.4;
+  --text-h5: 20px;
+  --text-h5--line-height: 1.4;
+  --text-h6: 16px;
+  --text-h6--line-height: 1.4;
+  --text-body-xl: 20px;
+  --text-body-xl--line-height: 1.8;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 1.8;
+  --text-body-md: 16px;
+  --text-body-md--line-height: 1.8;
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 1.8;
+  --text-body-xs: 12px;
+  --text-body-xs--line-height: 1.8;
+  --text-overline: 12px;
+  --text-overline--line-height: 1;
+  --text-overline--letter-spacing: 0.8px;
+
+  /* 1440 canvas with 108px gutters -> 1224px content well */
+  --spacing-gutter: 108px;
+  --container-well: 1224px;
+
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-quint: cubic-bezier(0.83, 0, 0.17, 1);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+  /* Lenis drives scroll; without this the native scrollbar fights it */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+  ::selection {
+    background: var(--color-primary);
+    color: #fff;
+  }
+}
+
+@layer utilities {
+  .well {
+    width: 100%;
+    max-width: var(--container-well);
+    margin-inline: auto;
+    padding-inline: 24px;
+  }
+  /* Lets a heading run past both viewport edges (the oversized closing quote) */
+  .edge-bleed {
+    width: 100vw;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  /* Pinned scroll-scrub stages stack on one another inside a tall spacer */
+  .pin-stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    overflow: hidden;
+  }
+  /*
+   * Liquid glint: a slow caustic travelling across display text, like light
+   * moving over water. Painted by clipping a moving gradient to the glyphs,
+   * so it costs one compositor-friendly background-position animation and
+   * never touches layout.
+   */
+  .liquid-text {
+    /*
+     * The base MUST be an explicit colour, never currentColor: this rule also
+     * sets `color: transparent` for the text clip, so currentColor resolves to
+     * transparent and the glyphs paint with nothing but the moving glint —
+     * i.e. the text disappears.
+     */
+    --liquid-base: var(--color-primary-900);
+    --liquid-glint: var(--color-primary);
+    background-image: linear-gradient(
+      100deg,
+      var(--liquid-base) 40%,
+      var(--liquid-glint) 50%,
+      var(--liquid-base) 60%
+    );
+    background-size: 260% 100%;
+    background-position: 130% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: liquid-glint 7s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+  /* Opaque glint stops: a translucent stop would let the page show through the
+     glyph as the wave passes, which reads as the text flickering. */
+  .liquid-text-dark {
+    --liquid-base: var(--color-primary-900);
+    --liquid-glint: var(--color-primary);
+  }
+  .liquid-text-light {
+    --liquid-base: #ffffff;
+    --liquid-glint: var(--color-primary-100);
+  }
+
+  /* Carousel tracks scroll natively but without a visible bar */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Masks a block of text so children can slide up from behind it */
+  .clip-reveal {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* A caustic sweeping around the rim, like light refracting through the edge
+   of a water droplet. Rotating a conic gradient is cheap and never relayouts. */
+@keyframes liquid-rim {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* Two slow, out-of-phase drifts so the interior highlights never beat in sync
+   — that asynchrony is what stops it looking like a pulsing glow. */
+@keyframes liquid-drift-a {
+  0%, 100% { transform: translate3d(-12%, -8%, 0) scale(1); }
+  50%      { transform: translate3d(14%, 10%, 0) scale(1.18); }
+}
+@keyframes liquid-drift-b {
+  0%, 100% { transform: translate3d(16%, 12%, 0) scale(1.12); }
+  50%      { transform: translate3d(-10%, -14%, 0) scale(1); }
+}
+
+@keyframes liquid-glint {
+  0%,
+  100% {
+    background-position: 130% 0;
+  }
+  50% {
+    background-position: -30% 0;
+  }
+}
+
+/* Respect the OS setting — every motion helper also checks this in JS */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
