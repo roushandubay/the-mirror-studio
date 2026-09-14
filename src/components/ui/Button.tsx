@@ -2,33 +2,21 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
+import GlassPanel from "@/components/ui/GlassPanel";
+import RollLabel from "@/components/ui/RollLabel";
 import { cn } from "@/lib/cn";
 import type { LinkRef } from "@/lib/blocks/types";
 
 /**
- * Figma "Button" component: 48px tall, 16px horizontal padding, 2px border,
- * 16px regular capitalised label. The sweep fill on hover is ours.
+ * The Figma "Button" component (commerce blocks), restyled as liquid glass to
+ * match the rest of the site. Variants map onto glass tones:
+ *
+ *   solid   → brand-tinted glass (the primary action)
+ *   outline → clear glass lit for dark grounds
+ *   ghost   → clear glass lit for pale grounds
+ *   link    → plain underlined text link
  */
-const VARIANTS = {
-  solid: "border-2 border-primary bg-primary text-white",
-  outline: "border-2 border-white text-white",
-  ghost: "border-2 border-primary text-primary",
-  link: "text-primary underline underline-offset-4",
-} as const;
-
-const SWEEP = {
-  solid: "bg-primary-700",
-  outline: "bg-white",
-  ghost: "bg-primary",
-  link: "",
-} as const;
-
-const SWEEP_TEXT = {
-  solid: "group-hover:text-white",
-  outline: "group-hover:text-primary-750",
-  ghost: "group-hover:text-white",
-  link: "",
-} as const;
+const TONE = { solid: "accent", outline: "light", ghost: "dark" } as const;
 
 export default function Button({
   link,
@@ -41,31 +29,24 @@ export default function Button({
 }) {
   const reduced = useReducedMotion();
   const variant = link.variant ?? "outline";
-  const isLink = variant === "link";
+
+  if (variant === "link") {
+    return (
+      <Link href={link.href} className={cn("text-body-md text-primary underline underline-offset-4", className)}>
+        {link.label}
+      </Link>
+    );
+  }
 
   return (
-    <Link
-      href={link.href}
-      className={cn(
-        "group relative inline-flex h-12 items-center justify-center gap-2 overflow-hidden px-4 py-2",
-        "text-body-md capitalize transition-colors duration-500",
-        VARIANTS[variant],
-        fullWidth && "w-full",
-        className,
-      )}
-    >
-      {!isLink && !reduced && (
-        <motion.span
-          aria-hidden
-          className={cn("absolute inset-0 origin-bottom", SWEEP[variant])}
-          initial={{ scaleY: 0 }}
-          whileHover={{ scaleY: 1 }}
-          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-        />
-      )}
-      <span className={cn("relative z-10 whitespace-nowrap transition-colors duration-500", SWEEP_TEXT[variant])}>
-        {link.label}
-      </span>
+    <Link href={link.href} className={cn("group inline-flex", fullWidth && "w-full", className)}>
+      <motion.span className={cn("block", fullWidth && "w-full")} whileHover={reduced ? undefined : { y: -2 }}>
+        <GlassPanel tone={TONE[variant]} className={cn("h-12 px-6", fullWidth && "w-full")}>
+          <RollLabel marker={null}>
+            <span className="whitespace-nowrap text-body-md capitalize">{link.label}</span>
+          </RollLabel>
+        </GlassPanel>
+      </motion.span>
     </Link>
   );
 }

@@ -18,8 +18,17 @@ const MEDIA = /^(IMG|VIDEO|CANVAS)$/;
  *
  * Checks are coalesced into one per animation frame, so this costs nothing
  * while scrolling fast.
+ *
+ * `probeX` is a fraction of the viewport width. The header probes once per
+ * control (left, centre, right), so a control over a dark panel and one over
+ * cream in the same row each get the right colour. Any element — not only a
+ * block wrapper — may carry `data-header-theme` to override its region.
  */
-export function useHeaderTheme(headerRef: RefObject<HTMLElement | null>, probeY = 40) {
+export function useHeaderTheme(
+  headerRef: RefObject<HTMLElement | null>,
+  probeY = 40,
+  probeX = 0.5,
+) {
   const [theme, setTheme] = useState<HeaderTheme>("light");
 
   useEffect(() => {
@@ -28,7 +37,7 @@ export function useHeaderTheme(headerRef: RefObject<HTMLElement | null>, probeY 
     const check = () => {
       frame = 0;
       const header = headerRef.current;
-      const stack = document.elementsFromPoint(window.innerWidth / 2, probeY);
+      const stack = document.elementsFromPoint(window.innerWidth * probeX, probeY);
       const below = stack.filter((el) => !header?.contains(el));
       const host = below
         .map((el) => el.closest<HTMLElement>("[data-header-theme]"))
@@ -54,7 +63,7 @@ export function useHeaderTheme(headerRef: RefObject<HTMLElement | null>, probeY 
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, [headerRef, probeY]);
+  }, [headerRef, probeY, probeX]);
 
   return theme;
 }

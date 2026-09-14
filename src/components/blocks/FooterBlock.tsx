@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { motion } from "motion/react";
 import { Reveal, RevealItem } from "@/components/motion/Reveal";
+import GlassPanel from "@/components/ui/GlassPanel";
 import { blockStyle } from "@/lib/blocks/style";
 import type { FooterBlock as Data, LinkRef } from "@/lib/blocks/types";
 
@@ -77,14 +78,16 @@ export default function FooterBlock({ block }: { block: Data }) {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={block.newsletter.placeholder ?? "Email address"}
-                      className="w-full border-b border-ink/25 bg-transparent pb-3 pr-10 text-body-md text-ink outline-none transition-colors duration-300 placeholder:text-muted focus:border-ink"
+                      className="w-full border-b border-ink/25 bg-transparent pb-3 pr-14 text-body-md text-ink outline-none transition-colors duration-300 placeholder:text-muted focus:border-ink"
                     />
                     <button
                       type="submit"
                       aria-label={block.newsletter.cta}
-                      className="absolute bottom-3 right-0 text-body-md text-ink transition-transform duration-300 hover:translate-x-1"
+                      className="absolute bottom-1.5 right-0"
                     >
-                      {sent ? "✓" : "→"}
+                      <GlassPanel tone={sent ? "accent" : "dark"} className="h-10 w-10 text-body-md">
+                        {sent ? "✓" : "→"}
+                      </GlassPanel>
                     </button>
                   </form>
                 </div>

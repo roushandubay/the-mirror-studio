@@ -179,9 +179,10 @@ export default function LipstickModel({
         });
 
         let raf = 0;
-        const clock = new THREE.Clock();
+        // Plain timestamps — THREE.Clock is deprecated in r18x
+        const started = performance.now();
         const tick = () => {
-          const t = clock.getElapsedTime();
+          const t = (performance.now() - started) / 1000;
           // One full turn across the (now much shorter) scrub, plus the faintest
           // idle drift so the specular stays alive when the page is still
           root.rotation.y = p * Math.PI * 2 + t * 0.06;

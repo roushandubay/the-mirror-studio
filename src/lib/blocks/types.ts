@@ -380,12 +380,6 @@ export type CinematicHeroBlock = BlockBase & {
   wordmarkImage?: MediaRef;
   /** DisplayLine syntax */
   tagline: string;
-  menuLabel?: string;
-  /** links shown in the full-screen menu overlay */
-  nav?: LinkRef[];
-  address?: string;
-  instagram?: string;
-  cta?: LinkRef;
   /** render the 3D lipstick over the frame instead of flat media */
   model?: "lipstick" | "none";
   overlay?: number;
@@ -512,6 +506,212 @@ export type ClosingCtaBlock = BlockBase & {
   cta: LinkRef;
 };
 
+/* ----------------------------- inner-page blocks ---------------------------
+ * Built for the service, academy, travel and booking pages. Same rules as the
+ * cinematic set: every string is plain text in DisplayLine syntax where it is
+ * a display heading, every asset is a MediaRef, and every behaviour that can
+ * be tuned is one group.
+ * ------------------------------------------------------------------------ */
+
+/**
+ * Real-time WebGL scenes a block can mount behind its content. Each is a
+ * self-contained Three.js module, dynamically imported so it never reaches the
+ * server bundle, paused while off screen, and skipped for reduced motion.
+ *
+ *   mirror    — the studio's logo as a brushed-silver mirror box, turning
+ *   globe     — dotted globe with arcs flying out of Siliguri to every city
+ *   particles — pigment dust that assembles into words as you scroll
+ *   liquid    — iridescent liquid chrome that follows the pointer
+ *
+ * The 3D lipstick is deliberately NOT a scene: it belongs to the homepage
+ * only, via the scroll-sequence block's `model` field.
+ */
+export type SceneName = "mirror" | "globe" | "particles" | "liquid" | "none";
+
+/** Inner-page opening. Shorter than the cinematic hero, always carries a scene. */
+export type PageHeroBlock = BlockBase & {
+  type: "page-hero";
+  eyebrow?: string;
+  /** DisplayLine syntax */
+  heading: string;
+  body?: string;
+  scene?: SceneName;
+  /** words the particle scene assembles, in order, as the hero scrolls away */
+  sceneWords?: string[];
+  /** mirror scene: image on the box's front face; defaults to the studio logo */
+  sceneTexture?: string;
+  /** optional photograph laid under the scene */
+  image?: MediaRef;
+  cta?: LinkRef;
+  secondaryCta?: LinkRef;
+  /** viewport heights, default 1 */
+  height?: number;
+  /** small facts shown along the bottom edge */
+  facts?: { label: string; value: string }[];
+};
+
+export type UspDay = {
+  id: string;
+  /** e.g. "Day 01" */
+  label: string;
+  /** DisplayLine syntax */
+  title: string;
+  points: string[];
+  image?: MediaRef;
+};
+
+/**
+ * The studio's headline offer — "Learn Makeup In Three Days". A pinned scrub:
+ * pigment particles gather into the numeral, then the three days take over one
+ * at a time while the particles re-form into each day's number.
+ */
+export type UspFeatureBlock = BlockBase & {
+  type: "usp-feature";
+  eyebrow?: string;
+  /** DisplayLine syntax */
+  heading: string;
+  body?: string;
+  days: UspDay[];
+  /** short facts under the heading, e.g. "Batch of 6" */
+  highlights?: string[];
+  cta?: LinkRef;
+  secondaryCta?: LinkRef;
+  /** viewport heights the pin lasts */
+  scrollLength?: number;
+  /** "full" pins through every day; "teaser" is a single-screen summary */
+  variant?: "full" | "teaser";
+};
+
+/** Janvi Agarwal as the face of the brand. */
+export type BrandFaceBlock = BlockBase & {
+  type: "brand-face";
+  eyebrow?: string;
+  /** set enormous across the portrait */
+  name: string;
+  role?: string;
+  /** DisplayLine syntax */
+  statement: string;
+  body?: string[];
+  portrait: MediaRef;
+  /** second, smaller photograph — at work */
+  secondary?: MediaRef;
+  /** counters that tick up when scrolled into view */
+  stats?: { id: string; value: number; suffix?: string; label: string }[];
+  signature?: string;
+  cta?: LinkRef;
+  /** liquid chrome behind the portrait */
+  scene?: SceneName;
+};
+
+export type ServiceItem = {
+  id: string;
+  title: string;
+  description?: string;
+  /** e.g. "From ₹—" — leave unset until prices are confirmed */
+  price?: string;
+  duration?: string;
+  includes?: string[];
+  image?: MediaRef;
+  href?: string;
+  /** pre-selects this on the booking page */
+  bookValue?: string;
+};
+
+/** Editorial service rows; hovering a row floats its photograph under the cursor. */
+export type ServiceListBlock = BlockBase & {
+  type: "service-list";
+  eyebrow?: string;
+  /** DisplayLine syntax */
+  heading?: string;
+  intro?: string;
+  items: ServiceItem[];
+  /** "rows" = hover-reveal list, "cards" = image cards */
+  layout?: "rows" | "cards";
+};
+
+export type DestinationRegion = {
+  id: string;
+  region: string;
+  cities: string[];
+};
+
+/** Pan-India and international bookings, told over the 3D globe. */
+export type DestinationsBlock = BlockBase & {
+  type: "destinations";
+  eyebrow?: string;
+  /** DisplayLine syntax */
+  heading: string;
+  body?: string;
+  regions: DestinationRegion[];
+  /** how travel bookings work, in order */
+  notes?: { id: string; title: string; body: string }[];
+  cta?: LinkRef;
+  scene?: SceneName;
+};
+
+export type FaqBlock = BlockBase & {
+  type: "faq";
+  eyebrow?: string;
+  heading?: string;
+  items: { id: string; q: string; a: string }[];
+};
+
+export type BookingOption = {
+  value: string;
+  label: string;
+  hint?: string;
+};
+
+/**
+ * The booking page. Deliberately three questions — what, when & where, who —
+ * and it hands off to WhatsApp, which is how the studio actually confirms.
+ */
+export type BookingFormBlock = BlockBase & {
+  type: "booking-form";
+  /** DisplayLine syntax */
+  heading: string;
+  intro?: string;
+  services: BookingOption[];
+  locations: BookingOption[];
+  /** digits only, with country code, e.g. 919800000000 */
+  whatsapp: string;
+  successHeading?: string;
+  successBody?: string;
+  /** reassurance lines shown beside the form */
+  assurances?: string[];
+};
+
+export type ContactBlock = BlockBase & {
+  type: "contact";
+  /** DisplayLine syntax */
+  heading: string;
+  intro?: string;
+  channels: { id: string; label: string; value: string; href?: string }[];
+  hours?: { id: string; days: string; time: string }[];
+  address?: string;
+  mapHref?: string;
+  image?: MediaRef;
+};
+
+/** Infinite running line of text — punctuation between sections. */
+export type MarqueeBlock = BlockBase & {
+  type: "marquee";
+  items: string[];
+  /** seconds per loop */
+  speed?: number;
+  /** scroll velocity skews and speeds the band */
+  reactive?: boolean;
+  tone?: "light" | "dark" | "accent";
+};
+
+/** Long-form legal / policy text. */
+export type TextPageBlock = BlockBase & {
+  type: "text-page";
+  heading: string;
+  updated?: string;
+  sections: { id: string; heading: string; paragraphs: string[] }[];
+};
+
 export type Block =
   | HeaderBlock
   | HeroBlock
@@ -532,7 +732,17 @@ export type Block =
   | MediaGridPushBlock
   | PullQuoteBlock
   | OverflowQuoteBlock
-  | ClosingCtaBlock;
+  | ClosingCtaBlock
+  | PageHeroBlock
+  | UspFeatureBlock
+  | BrandFaceBlock
+  | ServiceListBlock
+  | DestinationsBlock
+  | FaqBlock
+  | BookingFormBlock
+  | ContactBlock
+  | MarqueeBlock
+  | TextPageBlock;
 
 export type BlockType = Block["type"];
 
@@ -552,5 +762,9 @@ export type PageDoc = {
   title: string;
   description?: string;
   theme?: Partial<ThemeDoc>;
+  /** DisplayLine text for the opening curtain; unset = no preloader */
+  preloader?: string;
+  /** delay before the fixed header fades in, seconds (the homepage waits for its hero) */
+  headerDelay?: number;
   blocks: Block[];
 };

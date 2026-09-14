@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Open_Sans } from "next/font/google";
 import SmoothScroll from "@/components/motion/SmoothScroll";
-import { landingPage } from "@/content/landing";
+import { homePage } from "@/content/pages/home";
+import { SITE } from "@/content/site";
 import "./globals.css";
 
 // Figma specifies Open Sans across the UI type ramp.
@@ -22,12 +23,15 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
+// Site-wide defaults; each page overrides title and description from its PageDoc
 export const metadata: Metadata = {
-  title: landingPage.title,
-  description: landingPage.description,
+  title: homePage.title,
+  description: homePage.description,
+  applicationName: SITE.name,
   openGraph: {
-    title: landingPage.title,
-    description: landingPage.description,
+    title: homePage.title,
+    description: homePage.description,
+    siteName: SITE.name,
     locale: "en_IN",
     type: "website",
   },

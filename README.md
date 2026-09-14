@@ -31,26 +31,102 @@ scripts work normally.
 
 ---
 
-## Homepage structure
+## Pages
 
-Ten blocks, ~13,000px. Every one is data in `src/content/landing.ts`.
+Every page is a `PageDoc` in `src/content/pages/`, served by the single route
+`src/app/[[...slug]]/page.tsx` (statically generated; unknown URLs 404).
 
-| # | Block | What it does |
+| URL | Page | 3D |
 |---|---|---|
-| 1 | `cinematic-hero` | Full-frame video, square glass MENU + booking buttons, her logo, split tagline. No header bar. Recedes on scroll via a clip-path inset. |
-| 2 | `scroll-sequence` | Pinned 1.8-viewport scrub driving the **real 3D lipstick** behind dark frosted glass, fading as it goes. |
-| 3 | `band` | Studio signage, parallax. |
-| 4 | `stepper` | Thumbnail grows to full-bleed, then steps Consultation → Trial → Hair → The Day with a dot rail. |
-| 5 | `manifesto` | "so THAT YOU BECOME _art._" + long copy + glass CTA. |
-| 6 | `band` | Second punctuation band. |
-| 7 | `media-grid-push` | Column grid — 5 columns desktop, 2 on phones — adjacent columns drifting against each other, centred glass pill. |
-| 8 | `pull-quote` | Founder portrait + quote, line-by-line reveal. |
-| 9 | `overflow-quote` | 168px type running past both viewport edges + rotating metal seal. |
-| 10 | `footer` | Links, newsletter, contact band, copyright. |
+| `/` | Homepage (`home.ts`) | lipstick, particles, liquid, globe |
+| `/academy` | **Learn Makeup in 3 Days** — the USP | particles |
+| `/services` | Service index | liquid |
+| `/services/bridal` · `party` · `hair` · `beauty` | Service pages (one factory in `services.ts`) | mirror / particles / liquid |
+| `/janvi-agarwal` | Janvi as the brand face | particles, liquid |
+| `/destination-weddings` | Pan India & abroad | particles, globe |
+| `/gallery` | Gallery | liquid |
+| `/book` | Three-question booking → WhatsApp | liquid |
+| `/contact`, `/faq` | | particles / liquid |
+| `/terms`, `/privacy` | Draft policies | — |
+
+`/studio` redirects to `/janvi-agarwal`, `/journal` to `/gallery` (`next.config.ts`).
+
+Shared content lives in two files, so one edit updates every page:
+
+- `src/content/site.ts` — navigation, header CTA, menu feature card, contact
+  details, footer (a Payload **Global**)
+- `src/content/shared.ts` — the 3-day curriculum, Janvi's brand-face block,
+  destination regions, booking options, the closing CTA
+
+### Homepage running order
+
+`cinematic-hero` → `scroll-sequence` (lipstick) → **`usp-feature`** (Learn
+makeup in 3 days, pinned) → `marquee` → `band` → `stepper` → `manifesto` →
+**`brand-face`** (Janvi) → `media-grid-push` → **`destinations`** (globe) →
+`overflow-quote` → `closing-cta` → `footer`.
+
+The USP is placed straight after the opening scrub so no visitor misses it,
+and it is also the first link in the menu and a glass feature card inside the
+menu overlay.
+
+## Inner-page blocks
+
+| Block | What it does |
+|---|---|
+| `page-hero` | Inner-page opening with a live scene. Object scenes (globe, particles, mirror) sit right of the copy; surface scenes (liquid) fill the frame. Particle words form on load, then advance with scroll. |
+| `usp-feature` | `full`: pinned scrub — dust forms THREE → DAYS beside the promise, then each day takes over while the dust re-forms ONE / TWO / THREE. Pin is 2.6 viewports (was 4 — it felt stuck), and each day's copy drifts with the scroll so something always moves. Copy is capped at 44vw so it never runs under the dust. `teaser`: one screen, dust cycling on its own. |
+| `brand-face` | Name set enormous behind a portrait in an arch (the studio mirror's shape), liquid chrome in a larger arch behind her, pointer tilt + glare, counters. |
+| `service-list` | `rows`: hairline rows; hovering floats the photo under the cursor, leaning with pointer velocity. `cards`: tilt cards. |
+| `destinations` | Globe pinned left (desktop) turning India → Gulf/Europe as the regions scroll by; numbered travel steps. |
+| `booking-form` | See below. |
+| `faq`, `contact`, `marquee`, `text-page` | Accordion; channel list; scroll-velocity-reactive running text; policy text with sticky contents. |
+
+## The booking page
+
+Three questions only — **what** (one tap, auto-advances), **when & where**
+(date or "not fixed yet"; studio / elsewhere in India / abroad, with a city
+field only when travelling), **who** (name + WhatsApp). The request is written
+into a pre-filled WhatsApp message; nothing is stored server-side yet.
+`/book?service=academy` (or `bridal`, `party`, `hair`, `beauty`) pre-selects
+step one — every "Book" link on the site uses it.
+
+## WebGL scenes
+
+Blocks never import Three.js. They name a scene in data (`scene: "globe"`) and
+render `SceneCanvas`, which dynamically imports `three` and only that scene.
+
+| Scene | File | Notes |
+|---|---|---|
+| `mirror` | `three/scenes/mirror.ts` | The logo as a brushed-silver mirror box: logo front, true mirror back, easing turn that lingers on each face, orbiting specks. Rose and gold panels are baked into the reflected room. |
+| `globe` | `three/scenes/globe.ts` | Fibonacci dot sphere, arcs from Siliguri to 16 cities, pulsing pins. No textures. |
+| `particles` | `three/scenes/particles.ts` | Up to 7k dust grains sampled from Cormorant glyphs, staggered morph through words, pointer gust. |
+| `liquid` | `three/scenes/liquid.ts` | One-triangle shader: domain-warped metal reflecting a procedural studio, thin-film tint. |
+
+**The 3D lipstick is homepage-only** (`scroll-sequence.model`). It is
+deliberately not a `SceneName`, so no inner page can select it.
+
+All scenes run on `lib/three/stage.ts`: paused off screen (IntersectionObserver)
+and in background tabs, sized by ResizeObserver, DPR capped, shared eased
+pointer (touch ignored). Skipped for reduced motion.
+
+> **Particle words are spelled out, not numerals.** Cormorant's figures are
+> old-style — a "3" hangs below the baseline and reads as a hook in dust.
+> Sampling uses the 600 weight; the light cut's hairlines are too thin to hold
+> enough grains.
+
+## Page transitions & Lenis
+
+- `app/template.tsx` — a plum curtain lifts off each new page on client
+  navigation (skipped on first load). It is a sibling of the page, never a
+  transformed wrapper, so fixed/sticky children keep working.
+- `SmoothScroll` — Lenis 1.3 ticked from **Motion's frame loop** (`frame.update`)
+  so scroll and every `useScroll` style land in the same frame; `anchors`,
+  `stopInertiaOnNavigate`, `allowNestedScroll` on; scroll reset + `resize()` on
+  every route change.
 
 The Figma commerce blocks (`hero`, `categories`, `product-carousel`,
 `feature-row`, `offer`, `brand`, `blog`, `value-props`, `header`) are still
-registered and ready for inner pages.
+registered.
 
 ---
 
@@ -60,13 +136,14 @@ The CMS must let the client edit every component, text, colour, font, size,
 image and grid placement. That is only possible if no page is hardcoded:
 
 ```
-src/content/landing.ts            PageDoc  →  ordered Block[]
+src/content/pages/*.ts            PageDoc  →  ordered Block[]
+src/content/pages/index.ts        slug  →  PageDoc  (swap for a CMS query)
 src/lib/blocks/types.ts           the schema every block conforms to
 src/components/blocks/registry.ts block.type  →  React component
 src/components/BlockRenderer.tsx  walks the array and draws it
 ```
 
-`src/app/page.tsx` contains no layout. **Adding a section** = add a type, write
+`src/app/[[...slug]]/page.tsx` contains no layout. **Adding a section** = add a type, write
 the component, add one line to the registry.
 
 `BlockStyle` on every block covers background, colour, padding, max width,
@@ -121,8 +198,9 @@ the block sliding. Five columns on desktop, two on phones.
 
 ## Fixed header
 
-The hero's MENU and booking controls live in a **fixed** header that stays on
-screen for the whole page, as on the reference.
+`src/components/SiteHeader.tsx`, rendered once per page (it used to live inside
+the homepage hero). MENU, booking CTA, and on inner pages a centred wordmark
+linking home. It stays on screen for the whole page, as on the reference.
 
 - **Desktop** — plain text buttons measured off the reference: 45px row, 30px
   side gutters, 15px serif at 0.9px tracking, fully transparent, two-speed roll
@@ -130,7 +208,10 @@ screen for the whole page, as on the reference.
 - **Tablet and phone** (<1024px) — bare 45px icons, no panel.
 - **Colour follows the ground.** Each block is wrapped in
   `data-header-theme` (`light` = pale text, `dark` = ink). `useHeaderTheme`
-  hit-tests just under the bar once per frame while scrolling. Defaults per block
+  hit-tests just under the bar once per frame while scrolling — **once per
+  control** (left, centre, right), so a row straddling a dark panel and cream
+  colours each control correctly. Any element inside a block can carry its own
+  `data-header-theme` (the booking page's dark panel does). Defaults per block
   type live in `HEADER_THEME` in the registry; any block can override with
   `headerTheme`. Blocks in `HEADER_FOLLOWS_MEDIA` (the stepper) go light only
   while a photo is actually under the bar.
@@ -172,32 +253,27 @@ per-block with `motion.aspect`.
 
 ## Buttons and liquid glass
 
-Hero chrome is a **44x44 icon square**, never a text pill — matched to the
-reference, whose buttons measure 45x45.
+Every button on the site is `GlassPanel` (via `GlassCta`, `TextCta`, `Button`,
+the booking controls, footer submit, service arrows, floating actions),
+modelled on the macOS Tahoe Control Center controls:
 
-**On phones there is no panel at all.** Vero's mobile buttons compute to
-`background: transparent` / `backdrop-filter: none`, so ours do too: a bare
-icon with a drop shadow for legibility, and the footage is never boxed in.
-`ChromeButton` makes that call via `useIsMobile`, treating the pre-mount
-`null` as desktop so the server and first client render match.
+1. **Light blur, strong colour.** `blur(14px) saturate(190%) brightness(1.12)` —
+   the pane takes the colour of what is behind it instead of greying it out.
+2. **Continuous curvature.** Capsules and circles by default (`radius` 999);
+   tiles pass a radius (booking choices 26, menu feature card 30).
+3. **Specular rim.** A 1px masked gradient ring, bright where light enters
+   (top-left) and exits (bottom-right), faint along the sides.
+4. **Edge lensing.** Inner top highlight, darker inner bottom edge, soft inner
+   glow — the pane reads thicker at its rim than its centre.
+5. A pointer-tracked highlight on hover, and a water-drop ripple on press.
 
-**On desktop the icon sits in liquid glass** (`GlassPanel`), which is seven
-layers:
+Tones: `light` (dark grounds), `dark` (cream), `accent` (brand-tinted glass for
+the one primary action — booking "Continue", "Send on WhatsApp", a selected
+booking tile with its white check disc, like an active toggle).
 
-1. `blur(28px) saturate(200%)` backdrop — the refraction. The saturation is
-   what keeps the colour behind the glass alive instead of grey.
-2. a faint fill, brighter at the top, so light falls off downward
-3. an inset bevel: bright top-left, soft bottom-right, as a real edge catches light
-4. **rim caustic** — a conic highlight rotating around the border, masked to the
-   outer 1px (`liquid-rim`, 9s)
-5. **interior refraction** — two radial blobs drifting out of phase
-   (`liquid-drift-a` 11s / `liquid-drift-b` 14s); the asynchrony is what stops
-   it reading as a pulsing glow
-6. a pointer-tracked specular highlight
-7. a **water-drop ripple** on press, expanding from the exact contact point
-
-All of it is transform/background-position only, so nothing relayouts, and the
-whole set is skipped under `prefers-reduced-motion`.
+**The fixed header is the exception.** On desktop MENU and BOOK YOUR
+APPOINTMENT stay the transparent reference text buttons, as measured; on phones
+(`useIsMobile`) they are 44px glass circles. This split is the client's call.
 
 Display text carries the same idea: `.liquid-text` sweeps a caustic across the
 glyphs by clipping a moving gradient to them (`liquid-glint`, 7s), used on the
@@ -242,11 +318,7 @@ chrome `MeshPhysicalMaterial`. Scroll drives rotation and dolly.
 
 ## Mirror glass
 
-`src/components/ui/GlassPanel.tsx` — the Apple-style surface used for the MENU
-pill, CTAs and the close button. Four stacked effects: backdrop blur +
-saturation, a top-lit fill, a masked 1px gradient hairline, and a
-**pointer-tracked specular highlight** (that last one is what makes it read as
-mirror rather than frosted).
+`src/components/ui/GlassPanel.tsx` — see **Buttons and liquid glass** above.
 
 ---
 
@@ -287,10 +359,18 @@ All of them fall back to a plain element under `prefers-reduced-motion`.
 - **Logo resolution.** `public/studio/logo-mark.jpg` is 150×150, lifted from her
   Instagram avatar. Need the original **SVG or high-res PNG**; it is currently
   used as the hero mark and the closing seal, where it will soften on retina.
-- **Phone / WhatsApp.** `+91 00000 00000` in `src/content/landing.ts` and the
-  number in `FloatingActions.tsx` are placeholders.
-- **Founder quote.** The pull-quote is **drafted by me and attributed to Janvi**.
-  It must not go live until she approves or replaces it.
+- **Phone / WhatsApp.** `SITE.phone` and `SITE.whatsapp` in
+  `src/content/site.ts` are placeholders — the booking form sends to that
+  WhatsApp number, so **bookings go nowhere until it is replaced**.
+- **Founder quote.** The drafted pull-quote was removed from the homepage (the
+  `brand-face` block replaced it). Don't reinstate it without Janvi's approval.
+- **Academy course.** The 3-day curriculum, "small batches", the certificate,
+  and all FAQ answers about fees/batches are **draft** (`src/content/shared.ts`).
+- **Service menus** are draft and deliberately carry no prices.
+- **Brand-face stats** use facts from the studio's own offer (3 days, 5 services,
+  6 months, 22 listed cities), not career numbers — replace with real ones.
+- **Destination cities** and **opening hours** (`/contact`) are placeholders.
+- **Policies** (`/terms`, `/privacy`) are drafts for the studio / a lawyer to review.
 - **Gallery photography.** Currently 8 stills pulled from her Instagram grid.
   Two posts were excluded (a text-heavy hair collage and the grand-opening
   poster) and two were cropped to remove burnt-in captions.

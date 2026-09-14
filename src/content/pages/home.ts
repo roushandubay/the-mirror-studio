@@ -1,4 +1,13 @@
 import type { PageDoc } from "@/lib/blocks/types";
+import { FOOTER } from "@/content/site";
+import {
+  CLOSING,
+  GALLERY_ITEMS,
+  JANVI_FACE,
+  REGIONS,
+  USP_FULL,
+  USP_MARQUEE,
+} from "@/content/shared";
 
 /**
  * The homepage, as data.
@@ -16,26 +25,20 @@ import type { PageDoc } from "@/lib/blocks/types";
  * from the studio's own Instagram and grand-opening poster. Prices and the
  * founder quote are DRAFT and must be confirmed by Janvi before this is shown
  * to clients.
+ *
+ * Running order: the studio's promise, then its headline offer — "Learn makeup
+ * in three days" — straight after the opening scrub so no visitor misses it,
+ * then the process, Janvi as the face of the brand, the work, and where the
+ * studio travels.
  */
 
-const IG = "https://www.instagram.com/themirror_by_janviiagarwal/";
-const ADDRESS = "Near Tourist Inn Hotel, Sevoke Road, Siliguri";
-
-const NAV = [
-  { label: "Bridal", href: "/services/bridal" },
-  { label: "Hair & Salon", href: "/services/hair" },
-  { label: "Skin & Beauty", href: "/services/beauty" },
-  { label: "Academy", href: "/academy" },
-  { label: "The Studio", href: "/studio" },
-  { label: "Journal", href: "/journal" },
-  { label: "Contact", href: "/contact" },
-];
-
-export const landingPage: PageDoc = {
+export const homePage: PageDoc = {
   slug: "/",
-  title: "THE MIRROR by Janvi Agarwal — Luxury Makeup Studio & Salon, Siliguri",
+  title: "THE MIRROR by Janvi Agarwal — Luxury Makeup Studio, Salon & Academy",
   description:
-    "Bridal makeup, hair and beauty at THE MIRROR — a luxury makeup studio, salon and academy on Sevoke Road, Siliguri. Making every reflection unforgettable.",
+    "Bridal makeup, hair and beauty by Janvi Agarwal — in Siliguri, across India and abroad. Home of the signature course: learn makeup in three days.",
+  preloader: "Making every _reflection_ UNFORGETTABLE.",
+  headerDelay: 1.1,
 
   blocks: [
     {
@@ -47,11 +50,6 @@ export const landingPage: PageDoc = {
       imageMobile: { src: "/video/hero-mobile.jpg", alt: "Inside THE MIRROR studio, Siliguri" },
       wordmarkImage: { src: "/studio/logo-mark.jpg", alt: "THE MIRROR by Janvi Agarwal" },
       tagline: "Making every _reflection_ UNFORGETTABLE.",
-      menuLabel: "Menu",
-      nav: NAV,
-      address: ADDRESS,
-      instagram: IG,
-      cta: { label: "Book your APPOINTMENT", href: "/book" },
       // Bright, full-colour footage like the reference — the scrims behind the
       // buttons do the legibility work instead of a blanket scrim.
       overlay: 0.12,
@@ -106,6 +104,10 @@ export const landingPage: PageDoc = {
         },
       ],
     },
+
+    // The headline offer, immediately after the opening scrub
+    USP_FULL,
+    USP_MARQUEE,
 
     {
       id: "signage",
@@ -164,17 +166,10 @@ export const landingPage: PageDoc = {
         "Every booking begins with a conversation. We talk through your outfit, your jewellery, the light at your venue, and how you want to feel. Then we build a look that holds.",
         "Alongside bridal and party makeup the salon runs manicure, pedicure, hair trimming, hair spa and cleanup — available individually or on a six-month membership.",
       ],
-      cta: { label: "Discover our STUDIO", href: "/studio" },
+      cta: { label: "Explore our SERVICES", href: "/services" },
     },
 
-    {
-      id: "founder-band",
-      type: "band",
-      image: { src: "/studio/reel-06.jpg", alt: "Products laid out at the studio", focal: "50% 50%", fit: "contain", fitMobile: "cover" },
-      height: 300,
-      overlay: 0.28,
-      parallax: 90,
-    },
+    JANVI_FACE,
 
     {
       id: "gallery",
@@ -190,28 +185,18 @@ export const landingPage: PageDoc = {
         stagger: 0.07,
         aspect: "9 / 16",
       },
-      items: [
-        { src: "/studio/reel-05.jpg", alt: "Finished bridal-season look", focal: "50% 30%" },
-        { src: "/studio/reel-03.jpg", alt: "Shade selection at the studio" },
-        { src: "/studio/reel-08.jpg", alt: "Janvi Agarwal at THE MIRROR", focal: "50% 30%" },
-        { src: "/studio/reel-04.jpg", alt: "Neutral palette and brushes" },
-        { src: "/studio/reel-11.jpg", alt: "THE MIRROR signage", focal: "50% 45%" },
-        { src: "/studio/reel-02.jpg", alt: "Hair styling in progress", focal: "50% 35%" },
-        { src: "/studio/reel-06.jpg", alt: "Studio vanity" },
-        { src: "/studio/reel-07.jpg", alt: "Blow-dry and styling", focal: "50% 40%" },
-        { src: "/studio/reel-01.jpg", alt: "Salon pedicure", focal: "50% 35%" },
-      ],
+      items: GALLERY_ITEMS.slice(0, 9),
     },
 
     {
-      id: "founder",
-      type: "pull-quote",
-      // DRAFT — needs Janvi's approval before going live
-      quote:
-        "A mirror only shows you\nwhat is already there.\nMy work is to make sure\nyou recognise it.",
-      attribution: "Janvi Agarwal",
-      role: "Founder, THE MIRROR",
-      image: { src: "/studio/reel-08.jpg", alt: "Janvi Agarwal, founder of THE MIRROR", focal: "50% 28%" },
+      id: "destinations",
+      type: "destinations",
+      eyebrow: "Pan India & abroad",
+      heading: "From SILIGURI to _wherever you say yes._",
+      body: "The studio travels. Janvi and her team fly to weddings across India and overseas, with the full kit and the same unhurried care as in the chair on Sevoke Road.",
+      regions: REGIONS,
+      cta: { label: "Plan a DESTINATION BOOKING", href: "/destination-weddings" },
+      scene: "globe",
     },
 
     {
@@ -222,61 +207,7 @@ export const landingPage: PageDoc = {
       attribution: "THE MIRROR — SILIGURI",
     },
 
-    {
-      id: "closing",
-      type: "closing-cta",
-      heading: "Your day deserves to be _unforgettable._",
-      body: "Bridal dates for the season fill early. Tell us when you are getting ready and we will hold your slot.",
-      cta: { label: "Book your APPOINTMENT", href: "/book" },
-    },
-
-    {
-      id: "footer",
-      type: "footer",
-      watermark: { src: "/figma/footer-bg-logo.svg" },
-      columns: [
-        {
-          id: "f1",
-          heading: "How Can We Help?",
-          links: [
-            { label: "Book An Appointment", href: "/book" },
-            { label: "Contact Us", href: "/contact" },
-            { label: "FAQ", href: "/faq" },
-            { label: "The Studio", href: "/studio" },
-            { label: "Journal", href: "/journal" },
-          ],
-        },
-        {
-          id: "f2",
-          heading: "Services",
-          links: [
-            { label: "Bridal Makeup", href: "/services/bridal" },
-            { label: "Hair & Salon", href: "/services/hair" },
-            { label: "Skin & Beauty", href: "/services/beauty" },
-            { label: "Academy", href: "/academy" },
-          ],
-        },
-      ],
-      newsletter: {
-        heading: "Keep In Touch With The Mirror",
-        body: "Wedding-season dates, new services and academy batches — before anyone else.",
-        placeholder: "Email Address",
-        cta: "Subscribe",
-        consent:
-          "By submitting your email you agree to receive updates from THE MIRROR. Read our Privacy Policy.",
-      },
-      socials: [
-        { id: "ig", label: "Instagram", href: IG, icon: { src: "/figma/social-instagram.svg" } },
-        { id: "fb", label: "Facebook", href: "#", icon: { src: "/figma/social-facebook.svg" } },
-        { id: "pi", label: "Pinterest", href: "#", icon: { src: "/figma/social-pinterest.svg" } },
-      ],
-      address: ADDRESS,
-      phone: "+91 00000 00000",
-      copyright: "2026 THE MIRROR by Janvi Agarwal. All Rights Reserved.",
-      legal: [
-        { label: "Terms & Conditions", href: "/terms" },
-        { label: "Privacy Policy", href: "/privacy" },
-      ],
-    },
+    CLOSING,
+    FOOTER,
   ],
 };

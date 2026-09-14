@@ -13,35 +13,41 @@ import { useCallback, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 
 /**
- * Liquid glass.
+ * Liquid glass, modelled on the macOS Tahoe Control Center controls.
  *
- * Five layers, stacked bottom to top:
- *   1. heavy backdrop blur + saturation — the refraction. The saturation boost
- *      is what keeps the colour behind the glass alive instead of grey.
- *   2. a faint fill, brighter at the top, so light appears to fall off downward
- *   3. an edge refraction ring: a bright hairline that is strongest at the top
- *      left and bottom right, which is how a real bevel catches light
- *   4. a pointer-tracked specular highlight — the polish
- *   5. a water-drop ripple on press, expanding from the exact contact point
+ * What makes those read as glass rather than frosted plastic, in layers:
  *
- * Corners are square by default; the reference design uses sharp rectangles.
+ *   1. A LIGHT backdrop blur with a strong saturation and brightness lift. The
+ *      background keeps its own colour — a red desktop makes red glass — which
+ *      is the opposite of the old grey frost.
+ *   2. Continuous curvature: capsules and circles by default (`radius` 999).
+ *   3. A specular rim. A 1px ring whose brightness follows the light: strong at
+ *      the top-left, fading along the sides, catching again at the bottom-right
+ *      where light exits the lens. Drawn as a masked gradient border.
+ *   4. Lensing at the edge — a soft inner glow and a darker inner edge at the
+ *      bottom, so the pane appears thicker at its rim than its centre.
+ *   5. A pointer-tracked highlight that slides across the surface.
+ *   6. A water-drop ripple on press, from the exact contact point.
+ *
+ * Tones: `light` for dark/photographic grounds, `dark` for cream grounds,
+ * `accent` for the one primary action in a group (a brand-tinted pane, like
+ * Control Center's active toggles).
  */
 export default function GlassPanel({
   children,
   as = "div",
   tone = "light",
-  radius = 2,
+  radius = 999,
   className,
   style,
   sheen = true,
   interactive = true,
   ripple = true,
-  liquid = true,
 }: {
   children?: ReactNode;
   as?: ElementType;
-  /** which way the glass is lit — light for dark backdrops, dark for pale ones */
-  tone?: "light" | "dark";
+  tone?: "light" | "dark" | "accent";
+  /** px; 999 = capsule / circle */
   radius?: number;
   className?: string;
   style?: CSSProperties;
@@ -49,7 +55,7 @@ export default function GlassPanel({
   interactive?: boolean;
   /** water-drop ripple on press */
   ripple?: boolean;
-  /** animated caustics — the "liquid" in liquid glass */
+  /** kept for API compatibility; the rim is now static like the system glass */
   liquid?: boolean;
 }) {
   const reduced = useReducedMotion();
@@ -60,14 +66,11 @@ export default function GlassPanel({
   const nextId = useRef(0);
   const [drops, setDrops] = useState<{ id: number; x: number; y: number }[]>([]);
 
-  const px = useMotionValue(50);
+  const px = useMotionValue(30);
   const py = useMotionValue(0);
-  const sx = useSpring(px, { stiffness: 160, damping: 22, mass: 0.3 });
-  const sy = useSpring(py, { stiffness: 160, damping: 22, mass: 0.3 });
-
-  const highlight = useMotionTemplate`radial-gradient(140px circle at ${sx}% ${sy}%, rgba(255,255,255,0.42), rgba(255,255,255,0) 72%)`;
-
-  const isLight = tone === "light";
+  const sx = useSpring(px, { stiffness: 170, damping: 24, mass: 0.3 });
+  const sy = useSpring(py, { stiffness: 170, damping: 24, mass: 0.3 });
+  const highlight = useMotionTemplate`radial-gradient(120% 140% at ${sx}% ${sy}%, rgba(255,255,255,0.32), rgba(255,255,255,0) 55%)`;
 
   const drop = useCallback(
     (e: React.PointerEvent<HTMLElement>) => {
@@ -80,20 +83,18 @@ export default function GlassPanel({
     [ripple, reduced],
   );
 
+  const t = TONES[tone];
+
   return (
     <Tag
-      className={cn("group relative isolate overflow-hidden", className)}
+      // `group` too: RollLabels inside panels roll on the panel's own hover
+      className={cn("group group/glass relative isolate overflow-hidden", t.text, className)}
       style={{
         borderRadius: radius,
-        backdropFilter: "blur(28px) saturate(200%)",
-        WebkitBackdropFilter: "blur(28px) saturate(200%)",
-        background: isLight
-          ? "linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.07))"
-          : "linear-gradient(180deg, rgba(255,255,255,0.66), rgba(255,255,255,0.46))",
-        boxShadow: isLight
-          ? // edge refraction: bright top-left bevel, soft bottom occlusion
-            "inset 1px 1px 0 rgba(255,255,255,0.42), inset -1px -1px 0 rgba(255,255,255,0.12), inset 0 0 12px rgba(255,255,255,0.10), 0 8px 28px -14px rgba(0,0,0,0.45)"
-          : "inset 1px 1px 0 rgba(255,255,255,0.9), inset -1px -1px 0 rgba(255,255,255,0.5), inset 0 0 12px rgba(255,255,255,0.4), 0 8px 26px -16px rgba(20,1,10,0.35)",
+        backdropFilter: t.backdrop,
+        WebkitBackdropFilter: t.backdrop,
+        background: t.fill,
+        boxShadow: t.shadow,
         ...style,
       }}
       onPointerDown={drop}
@@ -109,65 +110,32 @@ export default function GlassPanel({
       onPointerLeave={
         interactive && !reduced
           ? () => {
-              px.set(50);
+              px.set(30);
               py.set(0);
             }
           : undefined
       }
     >
-      {/* rim caustic: a rotating conic highlight clipped to the 1px border */}
-      {liquid && !reduced && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
-          style={{ borderRadius: "inherit" }}
-        >
-          <span
-            className="absolute left-1/2 top-1/2 aspect-square w-[240%] -translate-x-1/2 -translate-y-1/2"
-            style={{
-              background: isLight
-                ? "conic-gradient(from 0deg, rgba(255,255,255,0) 0deg, rgba(255,255,255,0.55) 40deg, rgba(255,255,255,0) 90deg, rgba(255,255,255,0) 200deg, rgba(255,255,255,0.35) 250deg, rgba(255,255,255,0) 300deg)"
-                : "conic-gradient(from 0deg, rgba(255,255,255,0) 0deg, rgba(255,255,255,0.95) 40deg, rgba(255,255,255,0) 90deg, rgba(255,255,255,0) 200deg, rgba(255,255,255,0.7) 250deg, rgba(255,255,255,0) 300deg)",
-              animation: "liquid-rim 9s linear infinite",
-              // keep the caustic on the rim only
-              WebkitMask:
-                "radial-gradient(closest-side, transparent calc(100% - 2px), #000 calc(100% - 1px))",
-              mask: "radial-gradient(closest-side, transparent calc(100% - 2px), #000 calc(100% - 1px))",
-            }}
-          />
-        </span>
-      )}
+      {/* specular rim — a 1px gradient ring, bright where the light enters
+          (top-left) and exits (bottom-right) */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-[1]"
+        style={{
+          borderRadius: "inherit",
+          padding: 1,
+          background: t.rim,
+          WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+          WebkitMaskComposite: "xor",
+          mask: "linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0)",
+        }}
+      />
 
-      {/* interior refraction: two drifting blobs, out of phase */}
-      {liquid && !reduced && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 overflow-hidden opacity-70 mix-blend-overlay"
-          style={{ borderRadius: "inherit" }}
-        >
-          <span
-            className="absolute inset-[-40%] rounded-full"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(255,255,255,0.5), rgba(255,255,255,0) 62%)",
-              animation: "liquid-drift-a 11s ease-in-out infinite",
-            }}
-          />
-          <span
-            className="absolute inset-[-40%] rounded-full"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(255,255,255,0.34), rgba(255,255,255,0) 58%)",
-              animation: "liquid-drift-b 14s ease-in-out infinite",
-            }}
-          />
-        </span>
-      )}
-
+      {/* pointer-tracked highlight gliding across the pane */}
       {sheen && !reduced && (
         <motion.span
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 opacity-70 mix-blend-soft-light"
+          className="pointer-events-none absolute inset-0 z-0 opacity-0 transition-opacity duration-500 group-hover/glass:opacity-100"
           style={{ borderRadius: "inherit", backgroundImage: highlight }}
         />
       )}
@@ -186,9 +154,8 @@ export default function GlassPanel({
               height: 12,
               marginLeft: -6,
               marginTop: -6,
-              background: isLight
-                ? "radial-gradient(circle, rgba(255,255,255,0.55), rgba(255,255,255,0.12) 55%, rgba(255,255,255,0) 70%)"
-                : "radial-gradient(circle, rgba(255,255,255,0.9), rgba(255,255,255,0.25) 55%, rgba(255,255,255,0) 70%)",
+              background:
+                "radial-gradient(circle, rgba(255,255,255,0.7), rgba(255,255,255,0.18) 55%, rgba(255,255,255,0) 70%)",
             }}
             initial={{ scale: 0, opacity: 0.9 }}
             animate={{ scale: 26, opacity: 0 }}
@@ -198,9 +165,38 @@ export default function GlassPanel({
         ))}
       </AnimatePresence>
 
-      <span className="relative z-20 flex h-full w-full items-center justify-center">
-        {children}
-      </span>
+      <span className="relative z-20 flex h-full w-full items-center justify-center">{children}</span>
     </Tag>
   );
 }
+
+const TONES = {
+  /* over dark or photographic grounds */
+  light: {
+    text: "text-white",
+    backdrop: "blur(14px) saturate(190%) brightness(1.12)",
+    fill: "linear-gradient(180deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.06) 55%, rgba(255,255,255,0.1) 100%)",
+    rim: "linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.22) 28%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.18) 74%, rgba(255,255,255,0.6) 100%)",
+    shadow:
+      "inset 0 1px 1px rgba(255,255,255,0.28), inset 0 -1px 2px rgba(0,0,0,0.18), inset 0 0 14px rgba(255,255,255,0.08), 0 10px 30px -12px rgba(0,0,0,0.45)",
+  },
+  /* over cream: the pane lifts off the page, so it needs a shadow and a
+     slightly darker rim on the lower edge to read at all */
+  dark: {
+    text: "text-primary-900",
+    backdrop: "blur(14px) saturate(180%) brightness(1.04)",
+    fill: "linear-gradient(180deg, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.46) 60%, rgba(255,255,255,0.58) 100%)",
+    rim: "linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.5) 30%, rgba(20,1,10,0.08) 52%, rgba(255,255,255,0.4) 76%, rgba(255,255,255,0.95) 100%)",
+    shadow:
+      "inset 0 1px 1px rgba(255,255,255,0.9), inset 0 -1px 2px rgba(20,1,10,0.08), inset 0 0 14px rgba(255,255,255,0.5), 0 1px 2px rgba(20,1,10,0.06), 0 12px 32px -14px rgba(20,1,10,0.28)",
+  },
+  /* the primary action: brand-tinted glass */
+  accent: {
+    text: "text-white",
+    backdrop: "blur(14px) saturate(200%) brightness(1.08)",
+    fill: "linear-gradient(180deg, rgba(196,24,108,0.88) 0%, rgba(161,5,80,0.82) 55%, rgba(121,4,60,0.9) 100%)",
+    rim: "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.28) 28%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.2) 74%, rgba(255,255,255,0.65) 100%)",
+    shadow:
+      "inset 0 1px 1px rgba(255,255,255,0.4), inset 0 -2px 3px rgba(40,1,20,0.3), inset 0 0 16px rgba(255,180,215,0.18), 0 12px 30px -12px rgba(161,5,80,0.6)",
+  },
+} as const;

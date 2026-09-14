@@ -1,14 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { motion, useMotionTemplate, useReducedMotion, useScroll, useTransform } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import DisplayLine from "@/components/ui/DisplayLine";
-import { CalendarDays } from "lucide-react";
-import ChromeButton from "@/components/ui/ChromeButton";
-import MenuOverlay from "@/components/MenuOverlay";
-import { useHeaderTheme } from "@/lib/useHeaderTheme";
 import { blockStyle } from "@/lib/blocks/style";
 import { filterStyle, hasShade, shadeStyle } from "@/lib/blocks/media";
 import type { CinematicHeroBlock as Data } from "@/lib/blocks/types";
@@ -76,11 +71,6 @@ export default function CinematicHeroBlock({ block }: { block: Data }) {
 
   const dim = useTransform(scrollYProgress, [0, 1], [block.overlay ?? 0.4, sh.dimTo ?? 0.85]);
 
-  // Fixed header: stays put for the whole page like the reference, and flips
-  // between pale and ink text depending on what it is over.
-  const headerRef = useRef<HTMLDivElement>(null);
-  const headerTheme = useHeaderTheme(headerRef);
-
   return (
     <section
       ref={ref}
@@ -142,34 +132,8 @@ export default function CinematicHeroBlock({ block }: { block: Data }) {
         className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-black/35 to-transparent"
       />
 
-      {/* Fixed header, measured off the reference: a 45px row with 30px side
-          gutters and 15px vertical padding on desktop. Opacity-only entrance —
-          no transform, so nothing here can become a containing block. */}
-      <motion.div
-        ref={headerRef}
-        className="fixed inset-x-0 top-0 z-[70] flex items-center justify-between px-3 py-3 lg:px-[30px] lg:py-[15px]"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: reduced ? 0 : 1.1, duration: 0.8, ease: EASE }}
-      >
-        <MenuOverlay
-          label={block.menuLabel ?? "Menu"}
-          links={block.nav}
-          address={block.address}
-          instagram={block.instagram}
-          tone={headerTheme}
-        />
-
-        {block.cta && (
-          <Link href={block.cta.href} aria-label={block.cta.label}>
-            <ChromeButton
-              icon={<CalendarDays size={18} strokeWidth={1.5} />}
-              label={block.cta.label}
-              tone={headerTheme}
-            />
-          </Link>
-        )}
-      </motion.div>
+      {/* The fixed header used to live here; it is now the site-wide
+          SiteHeader, rendered once per page. */}
 
       {/* centred identity */}
       <div className="relative z-20 flex h-full flex-col items-center justify-center px-6 text-white">

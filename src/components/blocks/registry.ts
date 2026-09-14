@@ -25,6 +25,18 @@ import PullQuoteBlock from "./PullQuoteBlock";
 import OverflowQuoteBlock from "./OverflowQuoteBlock";
 import ClosingCtaBlock from "./ClosingCtaBlock";
 
+// Inner-page blocks — services, academy, travel, booking
+import PageHeroBlock from "./PageHeroBlock";
+import UspFeatureBlock from "./UspFeatureBlock";
+import BrandFaceBlock from "./BrandFaceBlock";
+import ServiceListBlock from "./ServiceListBlock";
+import DestinationsBlock from "./DestinationsBlock";
+import FaqBlock from "./FaqBlock";
+import BookingFormBlock from "./BookingFormBlock";
+import ContactBlock from "./ContactBlock";
+import MarqueeBlock from "./MarqueeBlock";
+import TextPageBlock from "./TextPageBlock";
+
 /**
  * The single source of truth linking a stored block's `type` to the component
  * that draws it. Adding a section to the site = add a type in lib/blocks/types,
@@ -53,6 +65,17 @@ export const BLOCK_REGISTRY: Record<BlockType, ComponentType<{ block: any }>> = 
   "pull-quote": PullQuoteBlock,
   "overflow-quote": OverflowQuoteBlock,
   "closing-cta": ClosingCtaBlock,
+
+  "page-hero": PageHeroBlock,
+  "usp-feature": UspFeatureBlock,
+  "brand-face": BrandFaceBlock,
+  "service-list": ServiceListBlock,
+  destinations: DestinationsBlock,
+  faq: FaqBlock,
+  "booking-form": BookingFormBlock,
+  contact: ContactBlock,
+  marquee: MarqueeBlock,
+  "text-page": TextPageBlock,
 };
 
 /** Human labels for the admin's "add section" menu. */
@@ -78,6 +101,17 @@ export const BLOCK_LABELS: Record<BlockType, string> = {
   "pull-quote": "Founder pull quote",
   "overflow-quote": "Oversized closing quote",
   "closing-cta": "Closing call to action",
+
+  "page-hero": "Page hero (3D scene)",
+  "usp-feature": "Signature offer — Learn Makeup in 3 Days",
+  "brand-face": "Brand face — Janvi Agarwal",
+  "service-list": "Service list",
+  destinations: "Destinations globe",
+  faq: "Questions",
+  "booking-form": "Booking form",
+  contact: "Contact",
+  marquee: "Running text band",
+  "text-page": "Policy / long text",
 };
 
 /** Default fixed-header colour while each block type sits under it. */
@@ -105,6 +139,18 @@ export const HEADER_THEME: Record<BlockType, "light" | "dark"> = {
   "pull-quote": "dark",
   "overflow-quote": "dark",
   "closing-cta": "light",
+
+  "page-hero": "light",
+  "usp-feature": "light",
+  "brand-face": "dark",
+  "service-list": "dark",
+  destinations: "light",
+  faq: "dark",
+  // cream form; its dark invitation panel marks itself data-header-theme="light"
+  "booking-form": "dark",
+  contact: "dark",
+  marquee: "light",
+  "text-page": "dark",
 };
 
 /**

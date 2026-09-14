@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import GlassPanel from "@/components/ui/GlassPanel";
 import RollLabel from "@/components/ui/RollLabel";
 import { useIsMobile } from "@/lib/useViewport";
 import { cn } from "@/lib/cn";
@@ -16,8 +17,8 @@ import { cn } from "@/lib/cn";
  * header chain is transparent top to bottom, and a panel behind the label is
  * what made ours look heavy.
  *
- * MOBILE — a bare 45px icon, no panel, with a drop shadow for legibility. The
- * reference switches to an icon at this size too.
+ * MOBILE — a 44px liquid-glass circle carrying the icon (GlassPanel), at the
+ * client's request, in the style of the macOS Control Center toggles.
  *
  * `useIsMobile` returns null until mounted; treating that as desktop keeps the
  * server and first client render identical.
@@ -37,19 +38,13 @@ export default function ChromeButton({
   const colour = tone === "light" ? "text-[#f8f8f8]" : "text-ink";
   const shadow = tone === "light" ? "drop-shadow-[0_1px_6px_rgba(0,0,0,0.35)]" : "drop-shadow-none";
 
+  // Phones: a 44px liquid-glass circle, like a Control Center toggle (the
+  // client's call — desktop stays the transparent reference text button)
   if (isMobile) {
     return (
-      <span
-        className={cn(
-          "flex h-[45px] w-[45px] items-center justify-center",
-          "transition-colors duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1)]",
-          colour,
-          shadow,
-          className,
-        )}
-      >
+      <GlassPanel tone={tone} className={cn("h-11 w-11", className)}>
         {icon}
-      </span>
+      </GlassPanel>
     );
   }
 
