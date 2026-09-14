@@ -1,6 +1,10 @@
-# Netlify detects Next.js automatically and runs it through its OpenNext
-# adapter (server components, route handlers, server actions, next/image).
-# Only the settings below differ from the defaults.
+# Netlify runs Next.js through its OpenNext adapter (server components, route
+# handlers, server actions, next/image).
+#
+# The adapter is declared explicitly below. Relying on auto-detection failed:
+# a deploy went out "Published" with the raw .next folder (manifests, trace,
+# turbopack) as the site root, no pages and no public/ assets — every URL,
+# even /studio/logo-mark.jpg, returned Netlify's 404.
 
 [build]
   # Calls Next directly rather than `npm run build`: the local project folder
@@ -11,6 +15,10 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+# Without this the build can "succeed" and publish the unprocessed .next folder
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
 # Day-long caching for the heavy media. Not "immutable": these filenames are
 # not content-hashed, so replacing hero-desktop.mp4 must still reach visitors.
